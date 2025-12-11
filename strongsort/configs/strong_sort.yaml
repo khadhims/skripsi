@@ -1,0 +1,10 @@
+STRONGSORT:
+  ECC: False # activate camera motion compensation
+  MC_LAMBDA: 0.995 # matching with both appearance (1 - MC_LAMBDA) and motion cost
+  EMA_ALPHA: 0.9 # updates  appearance  state in  an exponential moving average manner
+  MAX_DIST: 0.4 # Relaxed threshold to maintain ID despite appearance changes
+  MAX_IOU_DISTANCE: 0.7 # Gating threshold. Associations with cost larger than this value are disregarded.
+  MAX_AGE: 100 # Keep tracks alive longer (approx 3-4 seconds) during occlusion
+  N_INIT: 3 # Number of frames that a track remains in initialization phase
+  NN_BUDGET: 100 # Maximum size of the appearance descriptors gallery
+

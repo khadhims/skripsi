@@ -1,0 +1,13 @@
+vhome/
+venv/
+.env
+test/
+dataset/
+yolov8n.pt
+yolo11n.pt
+*.zip
+runs/
+__pycache__/
+
+custom/
+*.mp4
