@@ -68,9 +68,9 @@ def extract_frames(video_path, output_folder, interval_sec=None, interval_frames
     cap.release()
 
 # Configuration Variables
-VIDEO_PATH = "D:/DATASET/20251211104916730_FY0213996_hcDownloadP_Camera-Pemorsian_6_video.MOV" # Ganti dengan path video Anda
-OUTPUT_FOLDER = "D:/DATASET/2025-12-11(Test)" # Folder untuk menyimpan hasil
-INTERVAL_SEC = 1 # Ekstrak setiap X detik (misal: 1.0 untuk setiap 1 detik)
+VIDEO_PATH = "C:/Users/KHADHI MUSAID SYAH/Videos/vlc-record-2025-12-17-10h37m35s-A08_20251112151005.mp4-.mp4" # Ganti dengan path video Anda
+OUTPUT_FOLDER = "C:/Users/KHADHI MUSAID SYAH/Downloads/test-slot-parking" # Folder untuk menyimpan hasil
+INTERVAL_SEC = 4 # Ekstrak setiap X detik (misal: 1.0 untuk setiap 1 detik)
 INTERVAL_FRAMES = None # Ekstrak setiap X frame (jika INTERVAL_SEC None)
 
 if __name__ == "__main__":

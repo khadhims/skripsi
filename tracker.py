@@ -8,11 +8,25 @@ import yaml
 from easydict import EasyDict as edict
 from pathlib import Path
 
+import logging
+import time
+
+# Setup logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(message)s',
+    handlers=[
+        logging.FileHandler("inference_log.txt"),
+        logging.StreamHandler()
+    ]
+)
+
 import supervision as sv
 from strongsort.strong_sort import StrongSORT
 from strongsort.utils.parser import YamlParser
 
 SAVE_VIDEO = True
+CONFIRMATION_TIME = 0.8 # Detik
 
 class ObjectDetection:
     def __init__(self, capture_index):
@@ -26,6 +40,10 @@ class ObjectDetection:
         self.CLASS_NAMES_DICT = self.model.model.names
         self.box_annotator = sv.BoxAnnotator(color=sv.ColorPalette.DEFAULT, thickness=3)
         self.label_annotator = sv.LabelAnnotator(text_color=sv.Color.BLACK)
+        
+        # Dictionary to store active tracks: {track_id: {'start_time': float, 'label': str, 'conf': float}}
+        self.active_tracks = {}
+        
         reid_weights = Path("strongsort/deep/checkpoint/osnet_x0_25_msmt17.pt")
 
         tracker_config = "strongsort/configs/strong_sort.yaml"
@@ -52,7 +70,7 @@ class ObjectDetection:
         return model
 
     def predict(self, frame): 
-        results = self.model.predict(frame, conf=0.4, imgsz=960, classes=[2,3,4])
+        results = self.model.predict(frame, conf=0.25, imgsz=1088, classes=[2,3,4], verbose=False, iou=0.8)
 
         return results
 
@@ -79,6 +97,10 @@ class ObjectDetection:
             
         return frame, detections.xyxy
 
+    def save_detection_to_db(self, track_id, label, conf):
+        # Placeholder for DB Logic
+        logging.info(f"========> [REPORTED TO DB] ID {track_id} ({label}) Conf: {conf:.2f} <========")
+
     def __call__(self):
         cap = cv2.VideoCapture(self.capture_index)
         assert cap.isOpened()
@@ -88,7 +110,7 @@ class ObjectDetection:
         fps = cap.get(cv2.CAP_PROP_FPS)
 
         if SAVE_VIDEO:
-            outputvid = cv2.VideoWriter('result_tracking.mp4', cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
+            outputvid = cv2.VideoWriter('result_tracking_3.mp4', cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
         # setup pelacakan
         tracker = self.tracker
         
@@ -125,12 +147,57 @@ class ObjectDetection:
                     tracker_id=output_array[:, 4].astype(int)
                 )
                 frame, _ = self.draw_results(frame, tracked_detections)
+                
+                # --- LOGGING LOGIC ---
+                current_time = time.time()
+                current_ids = set(output_array[:, 4].astype(int))
+                
+                # Check for new tracks
+                for i, track_id in enumerate(output_array[:, 4].astype(int)):
+                    if track_id not in self.active_tracks:
+                        cls_id = int(output_array[i, 5])
+                        conf = output_array[i, 6]
+                        label = self.CLASS_NAMES_DICT[cls_id]
+                        
+                        # New track Init
+                        self.active_tracks[track_id] = {
+                            'start_time': current_time,
+                            'label': label,
+                            'conf': conf,
+                            'frames_seen': 1,
+                            'reported': False
+                        }
+                        logging.info(f"New object detecting: ID {track_id} ({label}) Conf: {conf:.2f}")
+
+                    else:
+                        # Existing track update
+                        self.active_tracks[track_id]['frames_seen'] += 1
+                        
+                        # Threshold Check
+                        confirmation_frames = int(fps * CONFIRMATION_TIME)
+                        if self.active_tracks[track_id]['frames_seen'] >= confirmation_frames and not self.active_tracks[track_id]['reported']:
+                            # Trigger Database Report
+                            self.save_detection_to_db(track_id, self.active_tracks[track_id]['label'], self.active_tracks[track_id]['conf'])
+                            self.active_tracks[track_id]['reported'] = True
+
+                # Check for lost tracks
+                lost_ids = set(self.active_tracks.keys()) - current_ids
+                for track_id in lost_ids:
+                    duration = current_time - self.active_tracks[track_id]['start_time']
+                    label = self.active_tracks[track_id]['label']
+                    logging.info(f"Object lost: ID {track_id} ({label}) - Duration: {duration:.2f}s")
+                    del self.active_tracks[track_id] # Remove from active tracking
             else:
-                 # Fallback to raw detections if no tracks yet (optional, or just show empty)
-                 # For consistency, better to show nothing or raw results. 
-                 # Let's show raw results if tracker is empty to avoid blank screen init
-                 pass # self.draw_results(frame, results) - actually draw_results expects Detections object now? 
-                 # Wait, draw_results currently expects 'results' (YOLO object). I need to change draw_results signature too.
+                 # If no detections at all, check if we need to close any existing tracks
+                 # (Optional: or keep them for a few frames? For now, let's assume if no output, they are lost)
+                 current_time = time.time()
+                 lost_ids = list(self.active_tracks.keys())
+                 for track_id in lost_ids:
+                    duration = current_time - self.active_tracks[track_id]['start_time']
+                    label = self.active_tracks[track_id]['label']
+                    logging.info(f"Object lost: ID {track_id} ({label}) - Duration: {duration:.2f}s")
+                    del self.active_tracks[track_id]
+
 
 
             end_time = perf_counter()
@@ -151,5 +218,6 @@ class ObjectDetection:
         cap.release()
         cv2.destroyAllWindows()
 
-detector = ObjectDetection(capture_index="D:/DATASET/20251211103859757_FY0213996_hcDownloadP_Camera-Persiapan_4_video.MOV")
-detector()
+if __name__ == "__main__":
+    detector = ObjectDetection(capture_index="D:/DATASET/20251212090904744_FY0213996_hcDownloadP_Camera-Pemorsian_6_video - Trim.mp4")
+    detector()
