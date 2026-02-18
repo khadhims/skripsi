@@ -11,3 +11,6 @@ __pycache__/
 
 custom/
 *.mp4
+
+models/
+dataset/

@@ -64,13 +64,13 @@ class ObjectDetection:
         )
     
     def load_model(self):
-        model = YOLO("D:/somba-trains-result/2025-12-11/train-v4/yolov8-train-v4.pt")
+        model = YOLO("./models/yolov8/v8-nano.pt")
         model.fuse()
         
         return model
 
     def predict(self, frame): 
-        results = self.model.predict(frame, conf=0.25, imgsz=1088, classes=[2,3,4], verbose=False, iou=0.8)
+        results = self.model.predict(frame, conf=0.3, imgsz=1088, verbose=False, iou=0.7)
 
         return results
 
@@ -104,6 +104,10 @@ class ObjectDetection:
     def __call__(self):
         cap = cv2.VideoCapture(self.capture_index)
         assert cap.isOpened()
+
+        frame_id = 0
+        pred_file = open("pred.txt", "w")
+        print("Generating pred.txt...")
         
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -125,9 +129,15 @@ class ObjectDetection:
         while True:
             start_time = perf_counter()
             ret, frame = cap.read()
+            if not ret:
+                break
             
-            assert ret
+            frame_id += 1
+
             results = self.predict(frame)
+
+            num_det = sum(len(r.boxes) for r in results)
+            print(f"Frame {frame_id} - YOLO detections: {num_det}")
 
             # Update tracker
             for result in results:
@@ -135,11 +145,34 @@ class ObjectDetection:
                 confs = result.boxes.conf.cpu()
                 clss = result.boxes.cls.cpu()
                 outputs[0] = tracker.update(xywhs, confs, clss, frame)
+
+                print(f"Frame {frame_id} - Tracker outputs: {0 if outputs[0] is None else len(outputs[0])}")
+
             
             # Prepare tracked detections for visualization
             if outputs[0] is not None and len(outputs[0]) > 0:
                 # outputs[0] structure: x1, y1, x2, y2, track_id, class_id, conf
                 output_array = outputs[0]
+
+                # ===============================
+                # TAMBAHAN: Save to pred.txt (AGNOSTIC)
+                # ===============================
+                for row in output_array:
+                    # format: x1, y1, x2, y2, track_id, class_id, conf
+                    x1, y1, x2, y2, track_id, class_id, conf = row
+
+                    x = float(x1)
+                    y = float(y1)
+                    w = float(x2 - x1)
+                    h = float(y2 - y1)
+
+                    # AGNOSTIC MODE → semua class = 1
+                    mapped_class = 1
+
+                    pred_file.write(
+                        f"{frame_id},{int(track_id)},{x:.2f},{y:.2f},{w:.2f},{h:.2f},{float(conf):.4f},{mapped_class},1\n"
+                    )
+
                 tracked_detections = sv.Detections(
                     xyxy=output_array[:, 0:4],
                     confidence=output_array[:, 6],
@@ -215,9 +248,13 @@ class ObjectDetection:
         
         if SAVE_VIDEO:
             outputvid.release()
+
+        pred_file.close()
+        print("Finished. pred.txt saved.")
+
         cap.release()
         cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    detector = ObjectDetection(capture_index="D:/DATASET/20251212090904744_FY0213996_hcDownloadP_Camera-Pemorsian_6_video - Trim.mp4")
+    detector = ObjectDetection(capture_index="./dataset/videos/vid_1.mp4")
     detector()
