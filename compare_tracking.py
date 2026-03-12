@@ -30,29 +30,29 @@ from ultralytics import YOLO
 # ==============================
 CONFIGS = [
     {
-        "name": "v8-nano-it2-vid1",
+        "name": "v8-medium-it2-vid1",
         "gt": "./dataset/tracker-val/vid1-gt.txt",
-        "tracked_pred": "./dataset/tracker-results/iterasi-2/v8-nano-it2-vid1-pred.txt",
+        "tracked_pred": "./dataset/tracker-results/iterasi-1/v8-medium-it2-vid1-pred.txt",
         "video": "./dataset/videos/vid_1.mp4",
-        "model": "./models/yolov8/iterasi-2/v8-nano.pt",
+        "model": "./models/yolov8/iterasi-2/v8-medium.pt",
     },
     {
-        "name": "v8-nano-it2-vid2",
+        "name": "v8-medium-it2-vid2",
         "gt": "./dataset/tracker-val/vid2-gt.txt",
-        "tracked_pred": "./dataset/tracker-results/iterasi-2/v8-nano-it2-vid2-pred.txt",
+        "tracked_pred": "./dataset/tracker-results/iterasi-1/v8-medium-it2-vid2-pred.txt",
         "video": "./dataset/videos/vid_2.mp4",
-        "model": "./models/yolov8/iterasi-2/v8-nano.pt",
+        "model": "./models/yolov8/iterasi-2/v8-medium.pt",
     },
     {
-        "name": "v8-nano-it2-vid3",
+        "name": "v8-medium-it2-vid3",
         "gt": "./dataset/tracker-val/vid3-gt.txt",
-        "tracked_pred": "./dataset/tracker-results/iterasi-2/v8-nano-it2-vid3-pred.txt",
+        "tracked_pred": "./dataset/tracker-results/iterasi-1/v8-medium-it2-vid3-pred.txt",
         "video": "./dataset/videos/vid_3.mp4",
-        "model": "./models/yolov8/iterasi-2/v8-nano.pt",
+        "model": "./models/yolov8/iterasi-2/v8-medium.pt",
     },
 ]
 
-IOU_THRESHOLD = 0.5
+IOU_THRESHOLD = 0.7
 CONF_THRESHOLD = 0.25
 IMGSZ = 1088
 

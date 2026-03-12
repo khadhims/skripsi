@@ -12,3 +12,4 @@ custom/
 *.mp4
 models/
 *.pt
+*.txt
