@@ -1,0 +1,57 @@
+{
+  "settings": {
+    "iou_threshold": 0.7,
+    "conf_threshold": 0.25,
+    "imgsz": 1088
+  },
+  "experiments": [
+    {
+      "name": "v5-large-vid1",
+      "model_family": "yolov5-strongsort",
+      "gt": "../../dataset/tracker-val/vid1-gt.txt",
+      "tracked_pred": "../../dataset/tracker-results/iterasi-1/v5-large-it2-vid1-pred.txt",
+      "video": "../../dataset/videos/vid_1.mp4",
+      "yolo_model": "../../models/yolov5/iterasi-2/v5-large.pt"
+    },
+    {
+      "name": "v5-large-vid2",
+      "model_family": "yolov5-strongsort",
+      "gt": "../../dataset/tracker-val/vid2-gt.txt",
+      "tracked_pred": "../../dataset/tracker-results/iterasi-1/v5-large-it2-vid2-pred.txt",
+      "video": "../../dataset/videos/vid_2.mp4",
+      "yolo_model": "../../models/yolov5/iterasi-2/v5-large.pt"
+    },
+    {
+      "name": "v5-large-vid3",
+      "model_family": "yolov5-strongsort",
+      "gt": "../../dataset/tracker-val/vid3-gt.txt",
+      "tracked_pred": "../../dataset/tracker-results/iterasi-1/v5-large-it2-vid3-pred.txt",
+      "video": "../../dataset/videos/vid_3.mp4",
+      "yolo_model": "../../models/yolov5/iterasi-2/v5-large.pt"
+    },
+    {
+      "name": "v8-medium-vid1",
+      "model_family": "yolov8-strongsort",
+      "gt": "../../dataset/tracker-val/vid1-gt.txt",
+      "tracked_pred": "../../dataset/tracker-results/iterasi-1/v8-medium-it2-vid1-pred.txt",
+      "video": "../../dataset/videos/vid_1.mp4",
+      "yolo_model": "../../models/yolov8/iterasi-2/v8-medium.pt"
+    },
+    {
+      "name": "v8-medium-vid2",
+      "model_family": "yolov8-strongsort",
+      "gt": "../../dataset/tracker-val/vid2-gt.txt",
+      "tracked_pred": "../../dataset/tracker-results/iterasi-1/v8-medium-it2-vid2-pred.txt",
+      "video": "../../dataset/videos/vid_2.mp4",
+      "yolo_model": "../../models/yolov8/iterasi-2/v8-medium.pt"
+    },
+    {
+      "name": "v8-medium-vid3",
+      "model_family": "yolov8-strongsort",
+      "gt": "../../dataset/tracker-val/vid3-gt.txt",
+      "tracked_pred": "../../dataset/tracker-results/iterasi-1/v8-medium-it2-vid3-pred.txt",
+      "video": "../../dataset/videos/vid_3.mp4",
+      "yolo_model": "../../models/yolov8/iterasi-2/v8-medium.pt"
+    }
+  ]
+}
