@@ -45,6 +45,8 @@ def summarize_by_model_family(rows: list[dict[str, Any]]) -> pd.DataFrame:
 
     df = pd.DataFrame(rows)
     metric_cols = [
+        "avg_fps",
+        "avg_inference_ms",
         "precision",
         "recall",
         "avg_frame_count_error",

@@ -42,8 +42,19 @@ def build_boxmot_detections(result):
     return np.hstack((xyxy, conf, cls))
 
 class ObjectDetection:
-    def __init__(self, capture_index):
+    def __init__(
+        self,
+        capture_index,
+        model_path: str | Path | None = None,
+        conf_threshold: float = 0.25,
+        imgsz: int = 1088,
+        iou_threshold: float = 0.7,
+    ):
         self.capture_index = capture_index
+        self.model_path = Path(model_path) if model_path else None
+        self.conf_threshold = conf_threshold
+        self.imgsz = imgsz
+        self.iou_threshold = iou_threshold
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         print("Using device: ", self.device)
         if self.device == 'cuda':
@@ -51,38 +62,45 @@ class ObjectDetection:
 
         self.model = self.load_model()
         self.CLASS_NAMES_DICT = self.model.model.names
-        self.box_annotator = sv.BoxAnnotator(color=sv.ColorPalette.DEFAULT, thickness=3)
+        self.box_annotator = sv.BoxAnnotator(color=sv.ColorPalette.DEFAULT, thickness=2)
         self.label_annotator = sv.LabelAnnotator(text_color=sv.Color.BLACK)
         
         # Dictionary to store active tracks: {track_id: {'start_time': float, 'label': str, 'conf': float}}
         self.active_tracks = {}
         
-        reid_weights = Path("strongsort/deep/checkpoint/osnet_x0_25_msmt17.pt")
+        reid_weights = Path("strongsort/ReID/osnet_x0_25_msmt17.pt")
 
-        tracker_config = _load_strongsort_cfg("strongsort/configs/strong_sort.yaml")
+        tracker_config = _load_strongsort_cfg("strongsort/configs/default_config.yaml")
 
         self.tracker = StrongSort(
             reid_weights=reid_weights,
             device=torch.device(self.device),
             half=False,
             min_conf=0.1,
-            max_cos_dist=tracker_config.get("MAX_DIST", 0.3),
-            max_iou_dist=tracker_config.get("MAX_IOU_DISTANCE", 0.7),
-            max_age=tracker_config.get("MAX_AGE", 30),
-            n_init=tracker_config.get("N_INIT", 3),
-            nn_budget=tracker_config.get("NN_BUDGET", 100),
-            mc_lambda=tracker_config.get("MC_LAMBDA", 0.95),
-            ema_alpha=tracker_config.get("EMA_ALPHA", 0.9),
+            max_cos_dist=tracker_config.get("MAX_DIST"),
+            max_iou_dist=tracker_config.get("MAX_IOU_DISTANCE"),
+            max_age=tracker_config.get("MAX_AGE"),
+            n_init=tracker_config.get("N_INIT"),
+            nn_budget=tracker_config.get("NN_BUDGET"),
+            mc_lambda=tracker_config.get("MC_LAMBDA"),
+            ema_alpha=tracker_config.get("EMA_ALPHA"),
         )
     
     def load_model(self):
-        model = YOLO("./models/yolov5/iterasi-2/v5-large.pt")
+        model_path = self.model_path or Path("./models/7 - tuned/yolov5.pt")
+        model = YOLO(str(model_path))
         model.fuse()
         
         return model
 
     def predict(self, frame): 
-        results = self.model.predict(frame, conf=0.25, imgsz=640, verbose=False, iou=0.7)
+        results = self.model.predict(
+            frame,
+            conf=self.conf_threshold,
+            imgsz=self.imgsz,
+            verbose=False,
+            iou=self.iou_threshold,
+        )
 
         return results
 
@@ -109,16 +127,12 @@ class ObjectDetection:
             
         return frame, detections.xyxy
 
-    def save_detection_to_db(self, track_id, label, conf):
-        # Placeholder for DB Logic
-        logging.info(f"========> [REPORTED TO DB] ID {track_id} ({label}) Conf: {conf:.2f} <========")
-
     def __call__(self):
         cap = cv2.VideoCapture(self.capture_index)
         assert cap.isOpened()
 
         frame_id = 0
-        pred_file = open("./dataset/tracker-results/iterasi-2/v5-large-it2-vid3-pred.txt", "w")
+        pred_file = open("./outputs/tracker_results/tuned/yolov5/ramai.txt", "w")
         print("Generating pred.txt...")
         
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -126,7 +140,7 @@ class ObjectDetection:
         fps = cap.get(cv2.CAP_PROP_FPS)
 
         if SAVE_VIDEO:
-            outputvid = cv2.VideoWriter('result_tracking_it2_vid3.mp4', cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
+            outputvid = cv2.VideoWriter('./outputs/videos/tuned/yolov5/ramai.mp4', cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
         # setup pelacakan
         tracker = self.tracker
         
@@ -234,7 +248,6 @@ class ObjectDetection:
                         confirmation_frames = int(fps * CONFIRMATION_TIME)
                         if self.active_tracks[track_id]['frames_seen'] >= confirmation_frames and not self.active_tracks[track_id]['reported']:
                             # Trigger Database Report
-                            self.save_detection_to_db(track_id, self.active_tracks[track_id]['label'], self.active_tracks[track_id]['conf'])
                             self.active_tracks[track_id]['reported'] = True
 
                 # Check for lost tracks
@@ -262,7 +275,7 @@ class ObjectDetection:
             # Resize for display (Canvas diperkecil 50%)
             display_frame = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5)
             cv2.putText(display_frame, f"FPS : {int(fps)}", (20, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-            cv2.imshow("YOLOv8 detection", display_frame)
+            cv2.imshow("YOLOv-StrongSORT pipeline", display_frame)
 
             if SAVE_VIDEO:
                 outputvid.write(frame)
@@ -280,5 +293,5 @@ class ObjectDetection:
         cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    detector = ObjectDetection(capture_index="./dataset/videos/vid_3.mp4")
+    detector = ObjectDetection(capture_index="./dataset/videos/ramai.mp4")
     detector()

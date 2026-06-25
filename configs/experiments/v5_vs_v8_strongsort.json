@@ -2,56 +2,56 @@
   "settings": {
     "iou_threshold": 0.7,
     "conf_threshold": 0.25,
-    "imgsz": 1088
+    "imgsz": 640
   },
   "experiments": [
     {
-      "name": "v5-large-vid1",
+      "name": "v5-sangat-sepi",
       "model_family": "yolov5-strongsort",
-      "gt": "../../dataset/tracker-val/vid1-gt.txt",
-      "tracked_pred": "../../dataset/tracker-results/iterasi-1/v5-large-it2-vid1-pred.txt",
-      "video": "../../dataset/videos/vid_1.mp4",
-      "yolo_model": "../../models/yolov5/iterasi-2/v5-large.pt"
+      "gt": "../../dataset/tracker_gt/sangat-sepi/gt.txt",
+      "tracked_pred": "../../outputs/tracker_results/baseline/yolov5/sangatsepi.txt",
+      "video": "../../dataset/videos/sangat sepi.mp4",
+      "yolo_model": "../../models/1 - baseline/yolov5.pt"
     },
     {
-      "name": "v5-large-vid2",
+      "name": "v5-sepi",
       "model_family": "yolov5-strongsort",
-      "gt": "../../dataset/tracker-val/vid2-gt.txt",
-      "tracked_pred": "../../dataset/tracker-results/iterasi-1/v5-large-it2-vid2-pred.txt",
-      "video": "../../dataset/videos/vid_2.mp4",
-      "yolo_model": "../../models/yolov5/iterasi-2/v5-large.pt"
+      "gt": "../../dataset/tracker_gt/sepi/gt.txt",
+      "tracked_pred": "../../outputs/tracker_results/baseline/yolov5/sepi.txt",
+      "video": "../../dataset/videos/sepi.mp4",
+      "yolo_model": "../../models/1 - baseline/yolov5.pt"
     },
     {
-      "name": "v5-large-vid3",
+      "name": "v5-ramai",
       "model_family": "yolov5-strongsort",
-      "gt": "../../dataset/tracker-val/vid3-gt.txt",
-      "tracked_pred": "../../dataset/tracker-results/iterasi-1/v5-large-it2-vid3-pred.txt",
-      "video": "../../dataset/videos/vid_3.mp4",
-      "yolo_model": "../../models/yolov5/iterasi-2/v5-large.pt"
+      "gt": "../../dataset/tracker_gt/ramai/gt.txt",
+      "tracked_pred": "../../outputs/tracker_results/baseline/yolov5/ramai.txt",
+      "video": "../../dataset/videos/ramai.mp4",
+      "yolo_model": "../../models/1 - baseline/yolov5.pt"
     },
     {
-      "name": "v8-medium-vid1",
+      "name": "v8-sangat-sepi",
       "model_family": "yolov8-strongsort",
-      "gt": "../../dataset/tracker-val/vid1-gt.txt",
-      "tracked_pred": "../../dataset/tracker-results/iterasi-1/v8-medium-it2-vid1-pred.txt",
-      "video": "../../dataset/videos/vid_1.mp4",
-      "yolo_model": "../../models/yolov8/iterasi-2/v8-medium.pt"
+      "gt": "../../dataset/tracker_gt/sangat-sepi/gt.txt",
+      "tracked_pred": "../../outputs/tracker_results/baseline/yolov8/sangatsepi.txt",
+      "video": "../../dataset/videos/sangat sepi.mp4",
+      "yolo_model": "../../models/1 - baseline/yolov8.pt"
     },
     {
-      "name": "v8-medium-vid2",
+      "name": "v8-sepi",
       "model_family": "yolov8-strongsort",
-      "gt": "../../dataset/tracker-val/vid2-gt.txt",
-      "tracked_pred": "../../dataset/tracker-results/iterasi-1/v8-medium-it2-vid2-pred.txt",
-      "video": "../../dataset/videos/vid_2.mp4",
-      "yolo_model": "../../models/yolov8/iterasi-2/v8-medium.pt"
+      "gt": "../../dataset/tracker_gt/sepi/gt.txt",
+      "tracked_pred": "../../outputs/tracker_results/baseline/yolov8/sepi.txt",
+      "video": "../../dataset/videos/sepi.mp4",
+      "yolo_model": "../../models/1 - baseline/yolov8.pt"
     },
     {
-      "name": "v8-medium-vid3",
+      "name": "v8-ramai",
       "model_family": "yolov8-strongsort",
-      "gt": "../../dataset/tracker-val/vid3-gt.txt",
-      "tracked_pred": "../../dataset/tracker-results/iterasi-1/v8-medium-it2-vid3-pred.txt",
-      "video": "../../dataset/videos/vid_3.mp4",
-      "yolo_model": "../../models/yolov8/iterasi-2/v8-medium.pt"
+      "gt": "../../dataset/tracker_gt/ramai/gt.txt",
+      "tracked_pred": "../../outputs/tracker_results/baseline/yolov8/ramai.txt",
+      "video": "../../dataset/videos/ramai.mp4",
+      "yolo_model": "../../models/1 - baseline/yolov8.pt"
     }
   ]
 }

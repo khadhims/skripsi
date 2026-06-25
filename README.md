@@ -87,6 +87,67 @@ python evaluation/mot/run_mot_validation.py \
   --iou 0.7
 ```
 
+Output tabel MOT menampilkan metrik lengkap (termasuk MOTA, IDF1, FP, FN, IDSW, IDTP, IDFP, IDFN, IDP, IDR, dll).
+
+## 5.1) Tutorial Lengkap: Validasi Semua Metrik Tracking + Speed
+
+Langkah ini mencakup metrik tracking (IDF1, MOTA, FN, FP, IDSW, IDTP, IDFP, IDFN) dan performa (FPS + inference speed).
+
+### A) Pastikan file GT & prediksi dalam format MOT
+
+- GT: `dataset/tracker-val/*.txt`
+- Pred: `dataset/tracker-results/*-pred.txt`
+
+Format baris MOT (9 kolom):
+
+```
+frame,id,x,y,w,h,conf,class,visibility
+```
+
+### B) Jalankan evaluasi MOT (semua metrik tracking)
+
+```bash
+python evaluation/mot/run_mot_validation.py \
+  --gt dataset/tracker-val/vid3-gt.txt \
+  --pred dataset/tracker-results/iterasi-1/v8-medium-it2-vid3-pred.txt \
+  --iou 0.7 \
+  --name V8-VID3
+```
+
+Tabel output MOT sudah memuat metrik yang Anda butuhkan: IDF1, MOTA, FP, FN, IDSW, IDTP, IDFP, IDFN.
+
+### C) Ukur FPS dan inference speed
+
+Ada dua opsi:
+
+1. **Benchmark pipeline langsung** (paling sederhana)
+
+```bash
+python benchmarks/run_pipeline_benchmark.py \
+  --video dataset/videos/vid_3.mp4 \
+  --model models/yolov8/iterasi-2/v8-medium.pt \
+  --conf 0.25 \
+  --iou 0.3 \
+  --imgsz 1088 \
+  --max-frames 200
+```
+
+Output menampilkan `Average FPS` dan `Avg Frame Time (ms)`.
+
+2. **Sekaligus di laporan evaluasi** (untuk perbandingan multi-eksperimen)
+
+```bash
+python analysis/comparison/run_v5_vs_v8_strongsort.py --speed-frames 200
+```
+
+atau
+
+```bash
+python analysis/comparison/run_tracking_vs_yolo.py --speed-frames 200
+```
+
+CSV hasilnya akan memiliki kolom `avg_fps` dan `avg_inference_ms` untuk tracking.
+
 ## 6) Benchmark Pipeline
 
 ```bash

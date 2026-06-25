@@ -18,6 +18,7 @@ from analysis.comparison.report import (
     write_csv,
 )
 from analysis.comparison.yolo_only import generate_yolo_only_prediction
+from benchmarks.run_pipeline_benchmark import run_benchmark
 
 
 def parse_args() -> argparse.Namespace:
@@ -41,6 +42,17 @@ def parse_args() -> argparse.Namespace:
         "--summary-output",
         default="outputs/reports/tracking_vs_yolo_summary.csv",
         help="Output CSV for averaged summary",
+    )
+    parser.add_argument(
+        "--speed-frames",
+        type=int,
+        default=0,
+        help="Measure tracking FPS/inference speed using N frames (0 to skip)",
+    )
+    parser.add_argument(
+        "--speed-all",
+        action="store_true",
+        help="Measure tracking FPS/inference speed using the entire video",
     )
     return parser.parse_args()
 
@@ -93,6 +105,31 @@ def main() -> None:
                 iou_threshold=thresholds.iou_threshold,
             )
 
+        speed_metrics: dict[str, float] | None = None
+        do_speed = args.speed_frames > 0 or args.speed_all
+        if do_speed:
+            if not exp.video.exists():
+                print(f"SKIP speed: video not found for {exp.name}")
+            elif not exp.yolo_model.exists():
+                print(f"SKIP speed: YOLO model not found for {exp.name}")
+            else:
+                frames = args.speed_frames if args.speed_frames > 0 else 0
+                speed_metrics = run_benchmark(
+                    str(exp.video),
+                    frames,
+                    model_path=str(exp.yolo_model),
+                    conf_threshold=thresholds.conf_threshold,
+                    imgsz=thresholds.imgsz,
+                    iou_threshold=thresholds.iou_threshold,
+                    print_summary=False,
+                )
+
+        avg_fps = None
+        avg_inference_ms = None
+        if speed_metrics and speed_metrics.get("total_frames", 0.0) > 0:
+            avg_fps = speed_metrics.get("avg_fps")
+            avg_inference_ms = speed_metrics.get("avg_frame_time_ms")
+
         tracked_eval = eval_result_to_dict(
             evaluate_prediction_file(exp.gt, exp.tracked_pred, thresholds.iou_threshold)
         )
@@ -107,6 +144,8 @@ def main() -> None:
                 "experiment": exp.name,
                 "model_family": exp.model_family,
                 "method": "tracking",
+                "avg_fps": avg_fps,
+                "avg_inference_ms": avg_inference_ms,
                 **tracked_eval,
                 "gt_path": str(exp.gt),
                 "pred_path": str(exp.tracked_pred),
@@ -117,6 +156,8 @@ def main() -> None:
                 "experiment": exp.name,
                 "model_family": exp.model_family,
                 "method": "yolo_only",
+                "avg_fps": None,
+                "avg_inference_ms": None,
                 **yolo_eval,
                 "gt_path": str(exp.gt),
                 "pred_path": str(yolo_only_path),

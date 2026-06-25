@@ -16,7 +16,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Evaluate MOT metrics for one prediction file")
     parser.add_argument("--gt", required=True, help="Path to GT MOT file")
     parser.add_argument("--pred", required=True, help="Path to prediction MOT file")
-    parser.add_argument("--iou", type=float, default=0.7, help="IoU threshold")
+    parser.add_argument("--iou", type=float, default=0.7, help="IoU dist threshold")
     parser.add_argument("--name", default="Agnostic", help="Summary name")
     return parser.parse_args()
 

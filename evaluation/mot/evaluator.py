@@ -19,14 +19,23 @@ def frame_range_check(gt_path: Path, pred_path: Path) -> tuple[int, int, int, in
     return gt_min, gt_max, pred_min, pred_max
 
 
-def evaluate_mot(gt_path: Path, pred_path: Path, iou_threshold: float, name: str = "Agnostic") -> dict[str, Any]:
+def evaluate_mot(gt_path: Path, pred_path: Path, iou_dist_threshold: float, name: str = "Agnostic", class_agnostic: bool = True) -> dict[str, Any]:
     gt = mm.io.loadtxt(str(gt_path), fmt="mot15-2D")
     pred = mm.io.loadtxt(str(pred_path), fmt="mot15-2D")
 
-    acc = mm.utils.compare_to_groundtruth(gt, pred, dist="iou", distth=iou_threshold)
+    # For class-agnostic evaluation, set all ClassId to 1 (same class for all objects)
+    if class_agnostic:
+        gt = gt.copy()
+        gt['ClassId'] = 1
+        pred = pred.copy()
+        pred['ClassId'] = 1
+
+    acc = mm.utils.compare_to_groundtruth(gt, pred, dist="iou", distth=iou_dist_threshold)
     mh = mm.metrics.create()
 
-    summary = mh.compute(acc, metrics=mm.metrics.motchallenge_metrics, name=name)
+    # Compute both standard MOT Challenge metrics and additional detailed metrics
+    metrics_to_compute = list(mm.metrics.motchallenge_metrics) + ['idtp', 'idfp', 'idfn', 'num_matches', 'num_objects', 'num_detections']
+    summary = mh.compute(acc, metrics=metrics_to_compute, name=name)
 
     row = summary.loc[name]
     return {
@@ -40,14 +49,27 @@ def evaluate_mot(gt_path: Path, pred_path: Path, iou_threshold: float, name: str
         "num_false_positives": int(row["num_false_positives"]),
         "num_misses": int(row["num_misses"]),
         "num_fragmentations": int(row["num_fragmentations"]),
+        "num_matches": int(row["num_matches"]),
+        "num_objects": int(row["num_objects"]),
+        "num_detections": int(row["num_detections"]),
+        "idtp": int(row["idtp"]),
+        "idfp": int(row["idfp"]),
+        "idfn": int(row["idfn"]),
     }
 
 
-def render_mot_summary(gt_path: Path, pred_path: Path, iou_threshold: float, name: str = "Agnostic") -> str:
+def render_mot_summary(gt_path: Path, pred_path: Path, iou_dist_threshold: float, name: str = "Agnostic", class_agnostic: bool = True) -> str:
     gt = mm.io.loadtxt(str(gt_path), fmt="mot15-2D")
     pred = mm.io.loadtxt(str(pred_path), fmt="mot15-2D")
 
-    acc = mm.utils.compare_to_groundtruth(gt, pred, dist="iou", distth=iou_threshold)
+    # For class-agnostic evaluation, set all ClassId to 1 (same class for all objects)
+    if class_agnostic:
+        gt = gt.copy()
+        gt['ClassId'] = 1
+        pred = pred.copy()
+        pred['ClassId'] = 1
+
+    acc = mm.utils.compare_to_groundtruth(gt, pred, dist="iou", distth=iou_dist_threshold)
     mh = mm.metrics.create()
     summary = mh.compute(acc, metrics=mm.metrics.motchallenge_metrics, name=name)
 

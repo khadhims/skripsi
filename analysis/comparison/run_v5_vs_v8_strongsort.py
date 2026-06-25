@@ -14,6 +14,7 @@ from analysis.comparison.config import load_experiment_config
 from analysis.comparison.metrics import evaluate_prediction_file
 from analysis.comparison.report import eval_result_to_dict
 from evaluation.mot.evaluator import evaluate_mot, frame_range_check
+from benchmarks.run_pipeline_benchmark import run_benchmark
 
 
 def parse_args() -> argparse.Namespace:
@@ -40,6 +41,22 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Fail when pred max frame differs from GT max frame",
     )
+    parser.add_argument(
+        "--speed-frames",
+        type=int,
+        default=0,
+        help="Measure tracking FPS/inference speed using N frames (0 to skip)",
+    )
+    parser.add_argument(
+        "--speed-all",
+        action="store_true",
+        help="Measure tracking FPS/inference speed using the entire video",
+    )
+    parser.add_argument(
+        "--no-class-agnostic",
+        action="store_true",
+        help="Disable class-agnostic mode (default: class-agnostic is enabled)",
+    )
     return parser.parse_args()
 
 
@@ -49,11 +66,14 @@ def main() -> None:
 
     thresholds, experiments = load_experiment_config(config_path)
     rows: list[dict[str, object]] = []
+    class_agnostic = not args.no_class_agnostic
+    
 
     print("=" * 72)
     print("YOLOV5-STRONGSORT VS YOLOV8-STRONGSORT")
-    print(f"Config : {config_path}")
-    print(f"IoU    : {thresholds.iou_threshold}")
+    print(f"Config       : {config_path}")
+    print(f"IoU          : {thresholds.iou_threshold}")
+    print(f"Class Mode   : {'AGNOSTIC (ignore class labels)' if class_agnostic else 'CLASS-AWARE'}")
     print("=" * 72)
 
     for exp in experiments:
@@ -66,21 +86,49 @@ def main() -> None:
             print(f"SKIP: frame range mismatch for {exp.name} ({pred_max} != {gt_max})")
             continue
 
+        speed_metrics: dict[str, float] | None = None
+        do_speed = args.speed_frames > 0 or args.speed_all
+        if do_speed:
+            if not exp.video.exists():
+                print(f"SKIP speed: video not found for {exp.name}")
+            elif not exp.yolo_model.exists():
+                print(f"SKIP speed: YOLO model not found for {exp.name}")
+            else:
+                frames = args.speed_frames if args.speed_frames > 0 else 0
+                speed_metrics = run_benchmark(
+                    str(exp.video),
+                    frames,
+                    model_path=str(exp.yolo_model),
+                    conf_threshold=thresholds.conf_threshold,
+                    imgsz=thresholds.imgsz,
+                    iou_threshold=thresholds.iou_threshold,
+                    print_summary=False,
+                )
+
         basic_eval = eval_result_to_dict(
             evaluate_prediction_file(exp.gt, exp.tracked_pred, thresholds.iou_threshold)
         )
-        mot_eval = evaluate_mot(exp.gt, exp.tracked_pred, thresholds.iou_threshold, name=exp.name)
+        mot_eval = evaluate_mot(exp.gt, exp.tracked_pred, thresholds.iou_threshold, name=exp.name, class_agnostic=class_agnostic)
         basic_eval_prefixed = {f"basic_{key}": value for key, value in basic_eval.items()}
+
+        avg_fps = None
+        avg_inference_ms = None
+        if speed_metrics and speed_metrics.get("total_frames", 0.0) > 0:
+            avg_fps = speed_metrics.get("avg_fps")
+            avg_inference_ms = speed_metrics.get("avg_frame_time_ms")
 
         row = {
             "experiment": exp.name,
             "model_family": exp.model_family,
+            "class_agnostic": class_agnostic,
             "gt_path": str(exp.gt),
             "pred_path": str(exp.tracked_pred),
             "gt_min_frame": gt_min,
             "gt_max_frame": gt_max,
             "pred_min_frame": pred_min,
             "pred_max_frame": pred_max,
+            "avg_fps": avg_fps,
+            "avg_inference_ms": avg_inference_ms,
             **basic_eval_prefixed,
             **mot_eval,
         }
@@ -89,7 +137,9 @@ def main() -> None:
         print(
             f"{exp.name}: "
             f"MOTA={mot_eval['mota']:.4f}, IDF1={mot_eval['idf1']:.4f}, "
-            f"Precision={basic_eval['precision']:.4f}, Recall={basic_eval['recall']:.4f}"
+            f"TP={mot_eval['num_matches']}, FP={mot_eval['num_false_positives']}, FN={mot_eval['num_misses']}, "
+            f"IDSW={mot_eval['num_switches']}, GT={mot_eval['num_objects']}, "
+            f"IDTP={mot_eval['idtp']}, IDFP={mot_eval['idfp']}, IDFN={mot_eval['idfn']}"
         )
 
     if not rows:
@@ -101,6 +151,10 @@ def main() -> None:
     metric_cols = [
         "mota",
         "idf1",
+        "idp",
+        "idr",
+        "avg_fps",
+        "avg_inference_ms",
         "basic_precision",
         "basic_recall",
         "basic_avg_frame_count_error",
@@ -113,6 +167,11 @@ def main() -> None:
         "num_false_positives",
         "num_misses",
         "num_fragmentations",
+        "num_matches",
+        "num_objects",
+        "idtp",
+        "idfp",
+        "idfn",
     ]
 
     summary_df = (
@@ -132,6 +191,7 @@ def main() -> None:
     print(f"Saved summary report: {summary_path}")
     print("\nSummary:")
     print(summary_df.to_string(index=False))
+    print(f"\nNote: Evaluation mode = {'CLASS-AGNOSTIC (class labels ignored)' if class_agnostic else 'CLASS-AWARE'}")
 
 
 if __name__ == "__main__":

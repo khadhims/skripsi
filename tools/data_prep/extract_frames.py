@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
-import uuid
 
 import cv2
 
@@ -53,7 +52,7 @@ def extract_frames(
         if not ret:
             break
 
-        output_name = f"{str(uuid.uuid4())[:8]}.png"
+        output_name = f"frame_{saved_count + 1}.png"
         output_path = output_folder / output_name
         cv2.imwrite(str(output_path), frame)
 
