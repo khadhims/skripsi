@@ -1,11 +1,17 @@
 # Skripsi Tracking Pipeline (YOLO + StrongSORT)
 
-Dokumen ini menjelaskan cara menggunakan file utama setelah restrukturisasi proyek.
+Proyek ini merupakan pipeline deteksi dan tracking objek (pekerja APD) menggunakan YOLOv5/YOLOv8 + StrongSORT untuk keperluan skripsi. Mencakup pelatihan model, optimasi hyperparameter, analisis sensitivitas, dan evaluasi metrik MOT.
 
 ## 1) Ringkasan Folder Utama
 
 - `main.py`
   - Runner utama tracking realtime/video (YOLO + StrongSORT) untuk generate prediksi MOT.
+- `baseline.ipynb`
+  - Notebook Kaggle untuk pelatihan model baseline YOLOv5 dan YOLOv8 (500 epoch, seed 42).
+- `hyperparameter_optimization.ipynb`
+  - Notebook Google Colab untuk grid search + Optuna hyperparameter tuning (batch size, imgsz, learning rate, optimizer).
+- `analisis_sensitivitas.ipynb`
+  - Notebook Kaggle untuk analisis sensitivitas model terhadap variasi parameter deteksi/tracking.
 - `analysis/comparison/`
   - Runner dan modul analisis perbandingan:
     - Tracking vs YOLO-only
@@ -23,7 +29,35 @@ Dokumen ini menjelaskan cara menggunakan file utama setelah restrukturisasi proy
 - `outputs/reports/`
   - Output laporan CSV hasil analisis.
 
-## 2) Setup Environment
+## 2) Struktur Dataset
+
+```
+dataset/
+├── videos/              # Video input (ramai.mp4, sepi.mp4, sangat sepi.mp4)
+└── tracker_gt/          # Ground truth MOT per skenario
+    ├── ramai/
+    │   ├── gt.txt       # Anotasi MOT (frame,id,x,y,w,h,conf,class,visibility)
+    │   └── labels.txt   # Daftar kelas (no_gloves, no_hairnet, no_mask)
+    ├── sepi/
+    └── sangat-sepi/
+```
+
+## 3) Struktur Model
+
+```
+models/
+├── 1 - baseline/        # Model baseline (yolov5.pt, yolov8.pt)
+├── 2 - epochs/          # Variasi epochs (100–500.pt)
+├── 3 - batch size/      # Variasi batch size (8, 16, 32, 64.pt)
+├── 4 - imgsz/           # Variasi image size (640, 832, 1088.pt)
+├── 5 - learning rate/   # Variasi lr0 (1e-2, 1e-3, 1e-4.pt)
+├── 6 - optimized/       # Model hasil optimasi Optuna
+└── 7 - tuned/           # Model terbaik final (yolov5.pt, yolov8.pt)
+```
+
+> File `.pt` dan `.mp4` dikelola dengan **Git LFS**.
+
+## 4) Setup Environment
 
 Gunakan virtual environment proyek:
 
@@ -33,7 +67,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## 3) Menjalankan Tracking Utama
+## 5) Menjalankan Tracking Utama
 
 Jalankan:
 
@@ -49,7 +83,7 @@ Catatan penting:
   - output prediksi MOT di variabel `pred_file`
 - Silakan sesuaikan path tersebut dengan data/eksperimen Anda.
 
-## 4) Analisis Perbandingan Utama
+## 6) Analisis Perbandingan Utama
 
 ### 4.1 YOLOv5-StrongSORT vs YOLOv8-StrongSORT
 
@@ -78,7 +112,7 @@ Jika file YOLO-only sudah tersedia dan tidak ingin generate ulang:
 python analysis/comparison/run_tracking_vs_yolo.py --skip-generate-yolo-only
 ```
 
-## 5) Evaluasi MOT Satu Pasangan File
+## 7) Evaluasi MOT Satu Pasangan File
 
 ```bash
 python evaluation/mot/run_mot_validation.py \
@@ -89,7 +123,7 @@ python evaluation/mot/run_mot_validation.py \
 
 Output tabel MOT menampilkan metrik lengkap (termasuk MOTA, IDF1, FP, FN, IDSW, IDTP, IDFP, IDFN, IDP, IDR, dll).
 
-## 5.1) Tutorial Lengkap: Validasi Semua Metrik Tracking + Speed
+## 7.1) Tutorial Lengkap: Validasi Semua Metrik Tracking + Speed
 
 Langkah ini mencakup metrik tracking (IDF1, MOTA, FN, FP, IDSW, IDTP, IDFP, IDFN) dan performa (FPS + inference speed).
 
@@ -148,7 +182,7 @@ python analysis/comparison/run_tracking_vs_yolo.py --speed-frames 200
 
 CSV hasilnya akan memiliki kolom `avg_fps` dan `avg_inference_ms` untuk tracking.
 
-## 6) Benchmark Pipeline
+## 8) Benchmark Pipeline
 
 ```bash
 python benchmarks/run_pipeline_benchmark.py \
@@ -156,9 +190,9 @@ python benchmarks/run_pipeline_benchmark.py \
   --max-frames 200
 ```
 
-## 7) Detection-Only Utilities
+## 9) Detection-Only Utilities
 
-### 7.1 Quick Detection Test (display + latency log di terminal)
+### 9.1 Quick Detection Test (display + latency log di terminal)
 
 ```bash
 python pipelines/detection/test_detection.py \
@@ -166,7 +200,7 @@ python pipelines/detection/test_detection.py \
   --video dataset/videos/vid_3.mp4
 ```
 
-### 7.2 Export Video Detection-Only (tanpa tracking)
+### 9.2 Export Video Detection-Only (tanpa tracking)
 
 ```bash
 python pipelines/detection/yolo_detect_only.py \
@@ -175,9 +209,9 @@ python pipelines/detection/yolo_detect_only.py \
   --output video-results/detection-only/vid3_detect.mp4
 ```
 
-## 8) Data Preparation Tools
+## 10) Data Preparation Tools
 
-### 8.1 Extract Frame dari Video
+### 10.1 Extract Frame dari Video
 
 ```bash
 python tools/data_prep/extract_frames.py \
@@ -195,7 +229,7 @@ python tools/data_prep/extract_frames.py \
   --interval-frames 10
 ```
 
-### 8.2 Convert CSV Annotation ke MOT GT
+### 10.2 Convert CSV Annotation ke MOT GT
 
 ```bash
 python tools/data_prep/mot_val_convert.py \
@@ -206,7 +240,7 @@ python tools/data_prep/mot_val_convert.py \
   --track-id-col object_id
 ```
 
-## 9) Analisis File Log Inferensi
+## 11) Analisis File Log Inferensi
 
 Jika Anda punya file log inferensi sendiri, analisis dengan:
 
@@ -218,7 +252,7 @@ python analysis/inference_logs/analyze_inference.py \
 
 Catatan: pipeline saat ini tidak lagi otomatis membuat `inference_log.txt` ke file.
 
-## 10) Konfigurasi Eksperimen
+## 12) Konfigurasi Eksperimen
 
 Konfigurasi default perbandingan ada di:
 
@@ -229,7 +263,7 @@ Anda bisa mengubah:
 - `settings` (`iou_threshold`, `conf_threshold`, `imgsz`)
 - daftar `experiments` (path GT, prediksi tracking, video, model)
 
-## 11) Lokasi Output Penting
+## 13) Lokasi Output Penting
 
 - Detail + summary perbandingan model:
   - `outputs/reports/v5_vs_v8_strongsort_metrics.csv`
@@ -240,7 +274,7 @@ Anda bisa mengubah:
 - Ringkasan latency inferensi:
   - `outputs/reports/inference_latency_summary.csv`
 
-## 12) Troubleshooting Singkat
+## 14) Troubleshooting Singkat
 
 - Jika import gagal, pastikan Anda menjalankan command dari root proyek:
   - `/home/kopet/skripsi`

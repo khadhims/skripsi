@@ -52,7 +52,7 @@ def extract_frames(
         if not ret:
             break
 
-        output_name = f"frame_{saved_count + 1}.png"
+        output_name = f"frame_{saved_count}.png"
         output_path = output_folder / output_name
         cv2.imwrite(str(output_path), frame)
 
