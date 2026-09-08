@@ -1,0 +1,57 @@
+{
+  "settings": {
+    "iou_threshold": 0.7,
+    "conf_threshold": 0.25,
+    "imgsz": 640
+  },
+  "experiments": [
+    {
+      "name": "v5-sangat-sepi",
+      "model_family": "yolov5-strongsort",
+      "gt": "../../dataset/tracker_gt/sangat-sepi/gt.txt",
+      "tracked_pred": "../../outputs/tracker_results/baseline/yolov5/sangatsepi.txt",
+      "video": "../../dataset/videos/sangat sepi.mp4",
+      "yolo_model": "../../models/1 - baseline/yolov5.pt"
+    },
+    {
+      "name": "v5-sepi",
+      "model_family": "yolov5-strongsort",
+      "gt": "../../dataset/tracker_gt/sepi/gt.txt",
+      "tracked_pred": "../../outputs/tracker_results/baseline/yolov5/sepi.txt",
+      "video": "../../dataset/videos/sepi.mp4",
+      "yolo_model": "../../models/1 - baseline/yolov5.pt"
+    },
+    {
+      "name": "v5-ramai",
+      "model_family": "yolov5-strongsort",
+      "gt": "../../dataset/tracker_gt/ramai/gt.txt",
+      "tracked_pred": "../../outputs/tracker_results/baseline/yolov5/ramai.txt",
+      "video": "../../dataset/videos/ramai.mp4",
+      "yolo_model": "../../models/1 - baseline/yolov5.pt"
+    },
+    {
+      "name": "v8-sangat-sepi",
+      "model_family": "yolov8-strongsort",
+      "gt": "../../dataset/tracker_gt/sangat-sepi/gt.txt",
+      "tracked_pred": "../../outputs/tracker_results/baseline/yolov8/sangatsepi.txt",
+      "video": "../../dataset/videos/sangat sepi.mp4",
+      "yolo_model": "../../models/1 - baseline/yolov8.pt"
+    },
+    {
+      "name": "v8-sepi",
+      "model_family": "yolov8-strongsort",
+      "gt": "../../dataset/tracker_gt/sepi/gt.txt",
+      "tracked_pred": "../../outputs/tracker_results/baseline/yolov8/sepi.txt",
+      "video": "../../dataset/videos/sepi.mp4",
+      "yolo_model": "../../models/1 - baseline/yolov8.pt"
+    },
+    {
+      "name": "v8-ramai",
+      "model_family": "yolov8-strongsort",
+      "gt": "../../dataset/tracker_gt/ramai/gt.txt",
+      "tracked_pred": "../../outputs/tracker_results/baseline/yolov8/ramai.txt",
+      "video": "../../dataset/videos/ramai.mp4",
+      "yolo_model": "../../models/1 - baseline/yolov8.pt"
+    }
+  ]
+}

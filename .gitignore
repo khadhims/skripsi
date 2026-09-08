@@ -9,7 +9,10 @@ runs/
 __pycache__/
 
 custom/
-*.mp4
-models/
-*.pt
-*.txt
+*.Identifier
+2 - epochs/
+3 - batch size/
+4 - imgsz/
+5 - learning rate/
+6 - optimized/
+testing_images/

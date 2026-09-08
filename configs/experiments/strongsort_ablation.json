@@ -1,0 +1,25 @@
+{
+  "settings": {
+    "iou_threshold": 0.7,
+    "conf_threshold": 0.25,
+    "imgsz": 1088
+  },
+  "yolo_model": "../../models/7 - tuned/yolov5.pt",
+  "scenarios": [
+    {
+      "name": "ramai",
+      "gt": "../../dataset/tracker_gt/ramai/gt.txt",
+      "video": "../../dataset/videos/ramai.mp4"
+    },
+    {
+      "name": "sepi",
+      "gt": "../../dataset/tracker_gt/sepi/gt.txt",
+      "video": "../../dataset/videos/sepi.mp4"
+    },
+    {
+      "name": "sangat-sepi",
+      "gt": "../../dataset/tracker_gt/sangat-sepi/gt.txt",
+      "video": "../../dataset/videos/sangat sepi.mp4"
+    }
+  ]
+}

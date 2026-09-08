@@ -1,0 +1,6 @@
+no_gloves
+no_hairnet
+no_mask
+yes_gloves
+yes_hairnet
+yes_mask
