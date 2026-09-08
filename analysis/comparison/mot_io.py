@@ -28,5 +28,6 @@ def xywh_to_xyxy(x: float, y: float, w: float, h: float) -> tuple[float, float, 
 
 
 def infer_yolo_only_path(tracked_pred_path: Path) -> Path:
-    stem = tracked_pred_path.stem.replace("-pred", "-yoloonly")
-    return tracked_pred_path.with_name(f"{stem}.txt")
+    stem = tracked_pred_path.stem
+    new_stem = stem.replace("-pred", "-yoloonly") if "-pred" in stem else f"{stem}-yoloonly"
+    return tracked_pred_path.with_name(f"{new_stem}.txt")

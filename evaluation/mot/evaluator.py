@@ -4,7 +4,12 @@ from pathlib import Path
 from typing import Any
 
 import motmetrics as mm
+import numpy as np
 import pandas as pd
+
+# motmetrics 1.4.0 (latest on PyPI) still calls np.asfarray, removed in NumPy 2.0.
+if not hasattr(np, "asfarray"):
+    np.asfarray = lambda a, dtype=float: np.asarray(a, dtype=dtype)
 
 
 def frame_range_check(gt_path: Path, pred_path: Path) -> tuple[int, int, int, int]:

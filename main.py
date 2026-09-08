@@ -22,7 +22,7 @@ import supervision as sv
 from boxmot.trackers.strongsort.strongsort import StrongSort
 
 SAVE_VIDEO = True
-CONFIRMATION_TIME = 0.8 # Detik
+# CONFIRMATION_TIME = 0.8 # Detik
 
 
 def _load_strongsort_cfg(config_path):
@@ -61,7 +61,7 @@ class ObjectDetection:
             torch.backends.cudnn.benchmark = True
 
         self.model = self.load_model()
-        self.CLASS_NAMES_DICT = self.model.model.names
+        self.CLASS_NAMES_DICT = self.model.model.names # type: ignore
         self.box_annotator = sv.BoxAnnotator(color=sv.ColorPalette.DEFAULT, thickness=2)
         self.label_annotator = sv.LabelAnnotator(text_color=sv.Color.BLACK)
         
@@ -107,7 +107,7 @@ class ObjectDetection:
     def draw_results(self, frame, detections):
         # Generate labels with Tracker ID
         self.labels = [
-            f"#{tracker_id} {self.CLASS_NAMES_DICT[class_id]} {confidence:.2f}"
+            f"#{tracker_id} {self.CLASS_NAMES_DICT[class_id]} {confidence:.2f}" # type: ignore
             for confidence, class_id, tracker_id
             in zip(detections.confidence, detections.class_id, detections.tracker_id)
         ]
@@ -140,7 +140,7 @@ class ObjectDetection:
         fps = cap.get(cv2.CAP_PROP_FPS)
 
         if SAVE_VIDEO:
-            outputvid = cv2.VideoWriter('./outputs/videos/tuned/yolov5/ramai.mp4', cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
+            outputvid = cv2.VideoWriter('./outputs/videos/tuned/yolov5/ramai.mp4', cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height)) # type: ignore
         # setup pelacakan
         tracker = self.tracker
         
@@ -161,13 +161,13 @@ class ObjectDetection:
 
             results = self.predict(frame)
 
-            num_det = sum(len(r.boxes) for r in results)
+            num_det = sum(len(r.boxes) for r in results) # type: ignore # type: ignore
             print(f"Frame {frame_id} - YOLO detections: {num_det}")
 
             # Update tracker with BoxMOT layout: [x1, y1, x2, y2, conf, cls]
             for result in results:
                 dets = build_boxmot_detections(result)
-                outputs[0] = tracker.update(dets, frame)
+                outputs[0] = tracker.update(dets, frame) # type: ignore
 
                 print(f"Frame {frame_id} - Tracker outputs: {0 if outputs[0] is None else len(outputs[0])}")
 
@@ -228,7 +228,7 @@ class ObjectDetection:
                     if track_id not in self.active_tracks:
                         cls_id = int(class_ids[i])
                         conf = float(conf_scores[i])
-                        label = self.CLASS_NAMES_DICT[cls_id]
+                        label = self.CLASS_NAMES_DICT[cls_id] # type: ignore
                         
                         # New track Init
                         self.active_tracks[track_id] = {
@@ -245,7 +245,7 @@ class ObjectDetection:
                         self.active_tracks[track_id]['frames_seen'] += 1
                         
                         # Threshold Check
-                        confirmation_frames = int(fps * CONFIRMATION_TIME)
+                        confirmation_frames = int(fps * CONFIRMATION_TIME) # type: ignore
                         if self.active_tracks[track_id]['frames_seen'] >= confirmation_frames and not self.active_tracks[track_id]['reported']:
                             # Trigger Database Report
                             self.active_tracks[track_id]['reported'] = True

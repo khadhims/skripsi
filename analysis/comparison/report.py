@@ -25,6 +25,9 @@ def print_pairwise_table(name: str, tracked: dict[str, Any], yolo_only: dict[str
         ("Total TP", tracked["total_tp"], yolo_only["total_tp"]),
         ("Total FP", tracked["total_fp"], yolo_only["total_fp"]),
         ("Total FN", tracked["total_fn"], yolo_only["total_fn"]),
+        ("GT Unique Objects", tracked["total_unique_gt"], yolo_only["total_unique_gt"]),
+        ("Pred Unique IDs", tracked["total_unique_pred"], yolo_only["total_unique_pred"]),
+        ("Unique Count Error", tracked["total_unique_count_error"], yolo_only["total_unique_count_error"]),
     ]
 
     for label, left, right in rows:

@@ -18,7 +18,11 @@ from analysis.comparison.report import (
     write_csv,
 )
 from analysis.comparison.yolo_only import generate_yolo_only_prediction
-from benchmarks.run_pipeline_benchmark import run_benchmark
+
+try:
+    from benchmarks.run_pipeline_benchmark import run_benchmark as _run_benchmark
+except ImportError:
+    _run_benchmark = None
 
 
 def parse_args() -> argparse.Namespace:
@@ -108,13 +112,15 @@ def main() -> None:
         speed_metrics: dict[str, float] | None = None
         do_speed = args.speed_frames > 0 or args.speed_all
         if do_speed:
-            if not exp.video.exists():
+            if _run_benchmark is None:
+                print("SKIP speed: benchmarks.run_pipeline_benchmark not available")
+            elif not exp.video.exists():
                 print(f"SKIP speed: video not found for {exp.name}")
             elif not exp.yolo_model.exists():
                 print(f"SKIP speed: YOLO model not found for {exp.name}")
             else:
                 frames = args.speed_frames if args.speed_frames > 0 else 0
-                speed_metrics = run_benchmark(
+                speed_metrics = _run_benchmark(
                     str(exp.video),
                     frames,
                     model_path=str(exp.yolo_model),
